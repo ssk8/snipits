@@ -9,8 +9,12 @@ from typing import List
 kodi_address = "192.168.1.110"
 #kodi_hd_path = Path("/media/sda1-usb-WDC_WD20_EZRZ-00")
 kodi_hd_path = Path("/media/sda1-ata-WDC_WD20EZRZ-00Z")
-ori_path = kodi_hd_path / 'TV Shows' / 'old name'
-target_path =  kodi_hd_path / 'TV Shows' / 'new name'
+
+show = "Name of Show"
+episodes = 25 #episodes per season
+
+ori_path = kodi_hd_path / 'TV Shows' / show 
+target_path =  kodi_hd_path / 'TV Shows' / show
 
 def get_remote(sftp_client: paramiko.sftp_client.SFTPClient, path, dirs=True) -> List[str]:
     """returns a list of remote directories at 'path' on 'sftp_client' if 'dirs' or list of files if not 'dirs'"""
@@ -33,10 +37,10 @@ def main():
     for f in ori_files:
         if se:=fixmatch.search(f):
             s, e = int(se.group()[1:3]), int(se.group()[4:])
-            if s==1 and e>12:
-                s, e = divmod(e, 12)
-                s+=1
-                new_name = fixmatch.sub(f'S{s:02}E{e:02}', f)
+            if s==1 and e>episodes:
+                s, e = divmod(e, episodes)
+                new_name = fixmatch.sub(f'S{(s+1):02}E{(e+1):02}', f)
+                print(new_name)
                 kodi_sftp.rename(str(ori_path/f), str(target_path/new_name))
     if ori_path != target_path:
         kodi_sftp.rmdir(str(ori_path))
